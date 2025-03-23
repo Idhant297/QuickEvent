@@ -7,39 +7,104 @@
 
 import SwiftUI
 import SwiftData
+import EventKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
+    @State private var eventText: String = ""
+    @StateObject private var calendarManager = CalendarManager()
 
     var body: some View {
-        NavigationSplitView {
+        VStack(spacing: 8) {
+            // Calendar Events Section
+            if calendarManager.isAuthorized {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Upcoming Events")
+                        .font(.headline)
+                        .padding(.horizontal, 8)
+                    
+                    ForEach(calendarManager.events, id: \.eventIdentifier) { event in
+                        HStack {
+                            Image(systemName: "calendar")
+                                .foregroundColor(.blue)
+                            VStack(alignment: .leading) {
+                                Text(event.title)
+                                    .font(.system(size: 12))
+                                Text(event.startDate, style: .time)
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                    }
+                }
+                .padding(.vertical, 4)
+                
+                Divider()
+            } else {
+                VStack(spacing: 8) {
+                    if let errorMessage = calendarManager.errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
+                    }
+                    
+                    Button("Allow Calendar Access") {
+                        Task {
+                            await calendarManager.checkAuthorization()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding(.vertical, 4)
+            }
+            
+            // Quick Notes Section
+            TextField("Add new note...", text: $eventText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal, 8)
+                .onSubmit {
+                    if !eventText.isEmpty {
+                        addItem(text: eventText)
+                        eventText = ""
+                    }
+                }
+            
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                ForEach(items, id: \.id) { item in
+                    HStack {
+                        Text(item.text ?? "No text")
+                        Spacer()
                     }
                 }
                 .onDelete(perform: deleteItems)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+            .frame(width: 250, height: 150)
+            
+            Divider()
+            
+            HStack {
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Label("Quit", systemImage: "power")
                 }
+                .buttonStyle(.plain)
+                .padding(.trailing, 8)
             }
-        } detail: {
-            Text("Select an item")
+            .padding(.vertical, 4)
         }
+        .frame(width: 250)
     }
 
-    private func addItem() {
+    private func addItem(text: String) {
         withAnimation {
-            let newItem = Item(timestamp: Date())
+            let newItem = Item(timestamp: Date(), text: text)
             modelContext.insert(newItem)
         }
     }
