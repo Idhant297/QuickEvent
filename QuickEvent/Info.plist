@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSCalendarsUsageDescription</key>
+	<string>QuickEvent needs access to your calendar to display upcoming events</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>QuickEvent uses reminders to help you manage your tasks</string>
+	<key>CFBundleIdentifier</key>
+	<string>Idhant.QuickEvent</string>
+	<key>CFBundleName</key>
+	<string>QuickEvent</string>
+	<key>CFBundleDisplayName</key>
+	<string>QuickEvent</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+</dict>
+</plist>

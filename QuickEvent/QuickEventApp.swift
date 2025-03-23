@@ -7,9 +7,15 @@
 
 import SwiftUI
 import SwiftData
+import AppKit
+import EventKit
 
 @main
 struct QuickEventApp: App {
+    @State private var statusItem: NSStatusItem?
+    @StateObject private var calendarManager = CalendarManager()
+    @StateObject private var openAIManager = OpenAIManager()
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -24,8 +30,26 @@ struct QuickEventApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup {
+        MenuBarExtra("QuickCal", systemImage: "calendar") {
             ContentView()
+                .environmentObject(calendarManager)
+                .environmentObject(openAIManager)
+        }
+        .menuBarExtraStyle(.window)
+        
+        WindowGroup {
+            Text("QuickEvent")
+                .onAppear {
+                    // Hide the main window as we're using this as a menu bar app
+                    NSApplication.shared.windows.forEach { window in
+                        window.close()
+                    }
+                    
+                    // Check calendar permissions on launch
+                    Task {
+                        await calendarManager.checkAuthorization()
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
     }
